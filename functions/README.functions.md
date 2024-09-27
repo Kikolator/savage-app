@@ -1,5 +1,179 @@
 # Savage Coworking Functions
 
+[API authentication](#api-authentication)  
+[Project structure](#project-structure)
+
+## API Authentication
+
+To secure your Firebase Functions API with an **API key authentication** layer,
+you can follow these steps to ensure that every public API request includes a
+valid key. This API key can be passed in request headers, and Firebase Functions
+can verify the key before allowing the request to proceed.
+
+### **Steps to Implement API Key Authentication:**
+
+1. **Set up environment variables for the API key.**
+2. **Create a middleware function to authenticate the API key.**
+3. **Use the middleware in your API routes.**
+4. **Deploy and test the API key-protected functions.**
+
+### **1. Store the API Key in Environment Variables**
+
+First, store the API key securely in your Firebase project’s environment
+variables. You can manage environment variables with Firebase using the
+`functions:config` command.
+
+#### **Set up environment variables for API key:**
+
+In your terminal, run the following command to set the API key (you can change
+the `your_api_key_value` to any secure key):
+
+```bash
+firebase functions:config:set api.key="your_api_key_value"
+```
+
+Now, the API key is securely stored in Firebase, and you can access it in your
+Firebase Functions code.
+
+### **2. Create a Middleware Function for API Key Authentication**
+
+Create a middleware function that checks the incoming request for a valid API
+key.
+
+#### **src/middleware/authenticateApiKey.ts**:
+
+```typescript
+import { Request, Response, NextFunction } from 'firebase-functions';
+
+/**
+ * Middleware to authenticate API requests using an API key.
+ */
+export const authenticateApiKey = (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): void => {
+  // Get the API key from the request headers
+  const apiKey = req.headers['x-api-key'];
+
+  // Check if the API key is present
+  if (!apiKey) {
+    return res.status(401).json({ error: 'Unauthorized: API key is missing' });
+  }
+
+  // Get the expected API key from Firebase environment config
+  const validApiKey = process.env.FIREBASE_CONFIG
+    ? JSON.parse(process.env.FIREBASE_CONFIG).api.key
+    : null;
+
+  // Validate the API key
+  if (apiKey !== validApiKey) {
+    return res.status(403).json({ error: 'Forbidden: Invalid API key' });
+  }
+
+  // If the API key is valid, allow the request to proceed
+  next();
+};
+```
+
+### **3. Use the Middleware in Your API Routes**
+
+Now, use the `authenticateApiKey` middleware in the routes where you want to
+enforce API key authentication.
+
+#### **src/routes/leadRoutes.ts**:
+
+```typescript
+import * as functions from 'firebase-functions';
+import { LeadController } from '../controllers/leadController';
+import { authenticateApiKey } from '../middleware/authenticateApiKey'; // Import the middleware
+
+// Secure routes with the API key middleware
+export const createLead = functions.https.onRequest((req, res) => {
+  authenticateApiKey(req, res, () => LeadController.createLead(req, res));
+});
+
+export const getLeads = functions.https.onRequest((req, res) => {
+  authenticateApiKey(req, res, () => LeadController.getLeads(req, res));
+});
+```
+
+In this code, the `authenticateApiKey` middleware is used to ensure that every
+request to the `createLead` and `getLeads` functions is authenticated using the
+API key. If the API key is missing or invalid, the middleware will block the
+request.
+
+### **4. Deploy and Test the API Key-Protected Functions**
+
+After adding the middleware, deploy your functions:
+
+```bash
+firebase deploy --only functions
+```
+
+### **5. Client-side API Requests**
+
+When calling your Firebase Functions API from the client or a third-party
+service, make sure to include the API key in the request headers:
+
+#### **Example Request using Fetch (JavaScript)**:
+
+```javascript
+fetch('https://your-firebase-function-url/leads', {
+  method: 'GET',
+  headers: {
+    'Content-Type': 'application/json',
+    'x-api-key': 'your_api_key_value', // Include the API key here
+  },
+})
+  .then((response) => response.json())
+  .then((data) => console.log(data))
+  .catch((error) => console.error('Error:', error));
+```
+
+### **6. Advanced: Rotate API Keys**
+
+If you need to rotate or manage multiple API keys (e.g., for different clients),
+you can modify the approach slightly:
+
+- Store multiple API keys in the Firebase environment (e.g., `api.keys` as a
+  JSON object).
+- Update the middleware to check the incoming API key against a list of valid
+  keys.
+
+#### **Handling Multiple API Keys**:
+
+```typescript
+const validApiKeys = process.env.FIREBASE_CONFIG
+  ? JSON.parse(process.env.FIREBASE_CONFIG).api.keys
+  : [];
+if (!validApiKeys.includes(apiKey)) {
+  return res.status(403).json({ error: 'Forbidden: Invalid API key' });
+}
+```
+
+You can then manage multiple API keys and rotate them by updating the
+environment variables without needing to change your code.
+
+---
+
+### **Summary:**
+
+- **API Key Authentication**: Use API key authentication as an additional
+  security layer for your Firebase Functions, ensuring only authorized clients
+  can access your API.
+- **Middleware**: Use a middleware function to check the validity of the API key
+  for each incoming request.
+- **Environment Variables**: Store API keys securely in Firebase environment
+  variables, which can be managed via the Firebase CLI.
+- **Scalability**: The solution can be extended to manage multiple API keys or
+  rotate keys by using environment configuration.
+
+This approach helps secure your Firebase backend while keeping your code modular
+and manageable.
+
+## Project Structure
+
 When structuring TypeScript functions in a Firebase project, maintaining
 clarity, scalability, and ease of maintenance is key. Here’s how we further
 organize our Firebase functions project to keep it well-structured and scalable
@@ -85,8 +259,8 @@ functions/
 #### **Example `src/controllers/leadController.ts`:**
 
 ```typescript
-import { Request, Response } from "firebase-functions";
-import { LeadService } from "../services/leadService";
+import { Request, Response } from 'firebase-functions';
+import { LeadService } from '../services/leadService';
 
 export class LeadController {
   static async createLead(req: Request, res: Response): Promise<void> {
@@ -112,7 +286,7 @@ export class LeadController {
 #### **Example `src/services/leadService.ts`:**
 
 ```typescript
-import { Lead } from "../models/lead";
+import { Lead } from '../models/lead';
 
 export class LeadService {
   static async createLead(leadData: Lead): Promise<Lead> {
@@ -133,8 +307,8 @@ export class LeadService {
 #### **Example `src/routes/leadRoutes.ts`:**
 
 ```typescript
-import * as functions from "firebase-functions";
-import { LeadController } from "../controllers/leadController";
+import * as functions from 'firebase-functions';
+import { LeadController } from '../controllers/leadController';
 
 export const createLead = functions.https.onRequest(LeadController.createLead);
 export const getLeads = functions.https.onRequest(LeadController.getLeads);
@@ -157,13 +331,13 @@ export interface Lead {
 #### **Example `src/index.ts`:**
 
 ```typescript
-import * as functions from "firebase-functions";
-import { createLead, getLeads } from "./routes/leadRoutes";
+import * as functions from 'firebase-functions';
+import { createLead, getLeads } from './routes/leadRoutes';
 
 // Export all functions
 exports.api = functions.https.onRequest((app) => {
-  app.use("/leads", createLead);
-  app.use("/leads", getLeads);
+  app.use('/leads', createLead);
+  app.use('/leads', getLeads);
 });
 ```
 
