@@ -1,0 +1,19 @@
+{
+  "projects": {
+    "default": "savage-coworking"
+  },
+  "targets": {
+    "savage-coworking": {
+      "hosting": {
+        "savage-coworking-qr": [
+          "qr"
+        ],
+        "savage-coworking": [
+          "my"
+        ]
+      }
+    }
+  },
+  "etags": {},
+  "dataconnectEmulatorConfig": {}
+}
