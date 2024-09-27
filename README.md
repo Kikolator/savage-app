@@ -71,7 +71,8 @@ Relational data like user data PostgreSQL.
 
 ### Qr Codes
 
-Domain: qr.savage-coworking.com
+Domain: qr.savage-coworking.com  
+target: qr
 
 #TODO add hashing for security when transporting sensitive data.
 
@@ -119,7 +120,8 @@ Dynamic codes:
 
 ### My Savage
 
-domain: my.savage-coworking.com
+domain: my.savage-coworking.com  
+target: my
 
 Flutter framework.  
 Code is stored in folder "apps"  
