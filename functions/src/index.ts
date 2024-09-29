@@ -1,27 +1,12 @@
-/**
- * Import function triggers from their respective submodules:
- *
- * import {onCall} from "firebase-functions/v2/https";
- * import {onDocumentWritten} from "firebase-functions/v2/firestore";
- *
- * See a full list of supported triggers at https://firebase.google.com/docs/functions
- */
+// src/index.ts
 
-// import {onRequest} from "firebase-functions/v2/https";
-// import * as logger from "firebase-functions/logger";
+import { initializeApp } from 'firebase-admin/app';
+import { onRequest } from 'firebase-functions/v2/https';
+import { apiApp } from './api';
 
-// Start writing functions
-// https://firebase.google.com/docs/functions/typescript
+initializeApp();
 
-// export const helloWorld = onRequest((request, response) => {
-//   logger.info("Hello logs!", {structuredData: true});
-//   response.send("Hello from Firebase!");
-// });
+export type UserRole = 'storeOwner' | 'buyer' | 'admin';
+export type MyClaims = 'authenticated' | UserRole;
 
-import * as functions from 'firebase-functions';
-import { createLead } from './routes/lead_routes';
-
-// Export all API functions
-exports.api = functions.https.onRequest((request) => {
-  request.app.use('/leads', createLead);
-});
+exports.api = onRequest(apiApp);

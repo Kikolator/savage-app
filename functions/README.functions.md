@@ -1,7 +1,44 @@
 # Savage Coworking Functions
 
+The Node.js server functions for the Savage Coworking application. Built with
+Typescript, Express, Firebase Authentication, Firebase Admin SDK, Firestore,
+Mailgrid API, Holded API.
+
+The main aspects of this project are
+
+- an `API HTTP trigger` (2nd Gen):
+
+  - A well organised `API` folder
+  - Access Control:
+    - Firebase authentication claims
+    - API key
+  - Rejects requests anywhere by throwing a `HttpResponseError(status, message)`
+
+- Firebase `Events Triggers` (2nd gen):
+
+Shared components are in the `core` folder:
+
+- Models
+- Services
+- Utils
+
 [API authentication](#api-authentication)  
+[Claim authentication](#claim-authentication)  
 [Project structure](#project-structure)
+
+## Run Server
+
+Make sure to use node version as specified in [package.json](./package.json)
+
+```bash
+nvm use node 22
+```
+
+Run npm serve from functions directory to run server.
+
+```bash
+npm run serve
+```
 
 ## API Authentication
 
@@ -25,15 +62,8 @@ variables. You can manage environment variables with Firebase using the
 
 #### **Set up environment variables for API key:**
 
-In your terminal, run the following command to set the API key (you can change
-the `your_api_key_value` to any secure key):
-
-```bash
-firebase functions:config:set api.key="your_api_key_value"
-```
-
-Now, the API key is securely stored in Firebase, and you can access it in your
-Firebase Functions code.
+Add function secret parameter. see docs:
+https://firebase.google.com/docs/functions/config-env?gen=2nd
 
 ### **2. Create a Middleware Function for API Key Authentication**
 
