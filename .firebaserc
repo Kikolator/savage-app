@@ -5,11 +5,11 @@
   "targets": {
     "savage-coworking": {
       "hosting": {
-        "savage-coworking-qr": [
-          "qr"
+        "qr": [
+          "savage-coworking-qr"
         ],
-        "savage-coworking": [
-          "my"
+        "my": [
+          "savage-coworking"
         ]
       }
     }
