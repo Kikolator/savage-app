@@ -7,8 +7,17 @@ import { defineSecret } from 'firebase-functions/params';
 
 initializeApp();
 
-export type UserRole = 'storeOwner' | 'buyer' | 'admin';
+export type UserRole = 'client' | 'admin';
 export type MyClaims = 'authenticated' | UserRole;
+export type SubscriptionType =
+  | 'allstar'
+  | 'nomad'
+  | 'explorer'
+  | 'weektripper'
+  | 'daytripper'
+  | 'socialiser'
+  | 'connector'
+  | 'checkpoint';
 
 const savageApiKey = defineSecret('SAVAGE_API_KEY');
 
