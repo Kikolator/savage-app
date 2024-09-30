@@ -23,6 +23,12 @@ declare global {
        * Refers to the claims from the user that is performing the request,
        * if the user is authenticated with Firebase, this object also includes the claims from `auth.claims` */
       claims?: Claims;
+
+      /** Refers to the Api key present on x-api-header.
+       * This can be null, or string. On calls where API must be checked,
+       * this value cannot be null, and should be verified.
+       */
+      apiKey?: string;
     }
   }
 }
