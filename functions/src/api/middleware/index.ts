@@ -3,6 +3,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { verifyIdToken } from './verify-idtoken';
 import * as bodyParser from 'body-parser';
+import { verifyApiKey } from './verify-api-key';
 
 export const interceptors: Array<
   (req: Request, res: Response, next: NextFunction) => void
@@ -15,5 +16,6 @@ export const interceptors: Array<
     req.claims = {} as any;
     next();
   },
+  verifyApiKey,
   verifyIdToken,
 ];

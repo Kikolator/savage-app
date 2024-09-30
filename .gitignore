@@ -70,3 +70,6 @@ node_modules/
 
 # Visual Studio Code files
 .vscode
+
+# Private key files
+.private

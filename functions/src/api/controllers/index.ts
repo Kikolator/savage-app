@@ -13,6 +13,8 @@ import {
 } from '../../core/utils/http-response-error';
 import { logger } from 'firebase-functions';
 import { MyClaims } from '../..';
+import { defineSecret } from 'firebase-functions/params';
+import { SecretParam } from 'firebase-functions/lib/params/types';
 
 export interface Controller {
   initialize(httpServer: HttpServer): void;
@@ -21,33 +23,60 @@ export interface Controller {
 export class HttpServer {
   constructor(public readonly express: Express) {}
 
-  get(path: string, requestHandler: RequestHandler, claims?: MyClaims[]): void {
-    this.express.get(path, this._catchErrorHandler(requestHandler, claims));
+  get(
+    path: string,
+    requestHandler: RequestHandler,
+    claims?: MyClaims[],
+    apiKey?: SecretParam
+  ): void {
+    this.express.get(
+      path,
+      this._catchErrorHandler(requestHandler, claims, apiKey)
+    );
   }
 
   post(
     path: string,
     requestHandler: RequestHandler,
-    claims?: MyClaims[]
+
+    claims?: MyClaims[],
+    apiKey?: SecretParam
   ): void {
-    this.express.post(path, this._catchErrorHandler(requestHandler, claims));
+    this.express.post(
+      path,
+      this._catchErrorHandler(requestHandler, claims, apiKey)
+    );
   }
 
   delete(
     path: string,
     requestHandler: RequestHandler,
-    claims?: MyClaims[]
+
+    claims?: MyClaims[],
+    apiKey?: SecretParam
   ): void {
-    this.express.delete(path, this._catchErrorHandler(requestHandler, claims));
+    this.express.delete(
+      path,
+      this._catchErrorHandler(requestHandler, claims, apiKey)
+    );
   }
 
-  put(path: string, requestHandler: RequestHandler, claims?: MyClaims[]): void {
-    this.express.put(path, this._catchErrorHandler(requestHandler, claims));
+  put(
+    path: string,
+    requestHandler: RequestHandler,
+    claims?: MyClaims[],
+    apiKey?: SecretParam
+  ): void {
+    this.express.put(
+      path,
+      this._catchErrorHandler(requestHandler, claims, apiKey)
+    );
   }
 
   private _catchErrorHandler(
     requestHandler: RequestHandler,
-    claims?: MyClaims[]
+    claims?: MyClaims[],
+    apiKey?: SecretParam
   ) {
     return async (req: Request, res: Response, next: NextFunction) => {
       const checkClaims = () => {
@@ -71,9 +100,24 @@ export class HttpServer {
           );
         }
       };
+
+      const checkApiKey = () => {
+        if (apiKey) {
+          // check provided api key from header with secret server key.
+          // key in header is set on express Request.apiKey
+          const apiHeaderValue = req.apiKey;
+
+          if (apiHeaderValue == defineSecret('SAVAGE_API_KEY').value()) {
+            return;
+          }
+
+          throw new HttpResponseError(403, 'Unauthorized', 'Invalid API key');
+        }
+      };
+
       try {
         checkClaims();
-
+        checkApiKey();
         await Promise.resolve(requestHandler(req, res, next));
       } catch (error) {
         const userInfo = !req.auth?.uid?.length ? '' : `uid: ${req.auth.uid}`;
