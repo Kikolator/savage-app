@@ -26,6 +26,12 @@ Shared components are in the `core` folder:
 [Claim authentication](#claim-authentication)  
 [Project structure](#project-structure)
 
+#### Things to do:
+
+- [ ] Add a db changed service to record db changes
+- [ ] Update Readme function structure, code principals, and key folder
+      descriptions.
+
 ## Run Server
 
 Make sure to use node version as specified in [package.json](./package.json)

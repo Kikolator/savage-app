@@ -42,20 +42,28 @@ export function validateLeadSignupReason(reason: string) {
     throw new HttpResponseError(400, 'BAD_REQUEST', 'invalid "signup reason"');
 }
 
-export function validateLeadSubscriptionType(type: string) {
-  if (
-    type != 'allstar' &&
-    type != 'nomad' &&
-    type != 'explorer' &&
-    type != 'weektripper' &&
-    type != 'daytripper' &&
-    type != 'socialiser' &&
-    type != 'connector' &&
-    type != 'checkpoint'
-  )
-    throw new HttpResponseError(
-      400,
-      'BAD_REQUEST',
-      'invalid "subscription type", neither "allstar" nor "nomad" nor "explorer" nor "weektripper" nor "daytripper" nor "socialiser" nor "connector" nor "checkpoint"'
-    );
+export function validateLeadSubscriptionType(type?: string) {
+  if (type?.length) {
+    if (
+      type != 'allstar' &&
+      type != 'nomad' &&
+      type != 'explorer' &&
+      type != 'weektripper' &&
+      type != 'daytripper' &&
+      type != 'socialiser' &&
+      type != 'connector' &&
+      type != 'checkpoint'
+    )
+      throw new HttpResponseError(
+        400,
+        'BAD_REQUEST',
+        'invalid "subscription type", neither "allstar" nor "nomad" nor "explorer" nor "weektripper" nor "daytripper" nor "socialiser" nor "connector" nor "checkpoint"'
+      );
+  }
+}
+
+export function validateLeadOrigin(origin: string) {
+  if (!origin?.length) {
+    throw new HttpResponseError(400, 'BAD_REQUEST', 'invalid origin');
+  }
 }
