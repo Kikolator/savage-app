@@ -58,47 +58,7 @@ Providers to setup:
 
 ## Firebase Functions
 
-Project Structure:
-
-```bash
-functions/
-│
-├── src/
-│   ├── controllers/
-│   │   ├── leadController.ts        # Functions that handle logic for leads
-│   │   ├── userController.ts        # Functions that handle logic for users
-│   │
-│   ├── services/
-│   │   ├── leadService.ts           # Lead business logic (DB interactions, validation)
-│   │   ├── userService.ts           # User business logic
-│   │
-│   ├── models/
-│   │   ├── lead.ts                  # TypeScript interfaces/models
-│   │   ├── user.ts                  # Other data models
-│   │
-│   ├── routes/
-│   │   ├── leadRoutes.ts            # Firebase function routes for leads
-│   │   ├── userRoutes.ts            # Routes for user-related functions
-│   │
-│   ├── utils/
-│   │   ├── db.ts                    # Utility to initialize and manage DB connection
-│   │   ├── validation.ts            # Helper functions for input validation
-│   │   ├── logger.ts                # Logging utility
-│   │
-│   ├── index.ts                     # Main entry point for Firebase functions
-│
-├── package.json                     # NPM dependencies
-├── tsconfig.json                    # TypeScript configuration
-├── firebase.json                    # Firebase configuration
-└── .firebaserc                      # Firebase project settings
-```
-
-For more information on Savage Coworking Functions refer to
-[Functions REAMDE](./functions/README.functions.md) File
-
-### Function Routes:
-
-#TODO
+[Functions Readme](functions/README.functions.md)
 
 ## Databases
 
