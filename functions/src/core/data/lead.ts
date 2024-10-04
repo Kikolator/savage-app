@@ -21,30 +21,38 @@ import { SubscriptionType } from '../..';
  * or what they are looking for.
  * - subscriptionType: The id of the subscription they are enquiring for,
  * or where the form was filled in from. When null, the lead did not express interest in a certain subscription.
- * - createdAt: Date object in UTC for when lead was created.
+ * - origin: where the lead is originated, for example 'web'.
  */
 export class Lead {
   constructor(
+    public readonly leadId: string | undefined,
+    public readonly createdAt: Date,
+    public readonly origin: string,
     public readonly firstName: string,
     public readonly lastName: string,
     public readonly email: string,
-    public readonly phone: string,
-    public readonly countryCode: string,
-    public readonly startDate: Date | null,
-    public readonly signupReason: string,
-    public readonly subscriptionType: SubscriptionType | null
+    public readonly phone: string | undefined,
+    public readonly startDate: Date | undefined,
+    public readonly signupReason: string | undefined,
+    public readonly subscriptionType: SubscriptionType | undefined,
+    public readonly sendgridContactId: string | undefined,
+    public readonly sendgridListId: string[] | undefined
   ) {}
 
-  copyWith(data: Partial<Record<keyof Lead, any>>) {
+  static empty() {
     return new Lead(
-      data.firstName ?? this.firstName,
-      data.lastName ?? this.lastName,
-      data.email ?? this.email,
-      data.phone ?? this.phone,
-      data.countryCode ?? this.countryCode,
-      data.startDate ?? this.startDate,
-      data.signupReason ?? this.signupReason,
-      data.subscriptionType ?? this.subscriptionType
+      '',
+      new Date(),
+      '',
+      '',
+      '',
+      '',
+      '',
+      new Date(),
+      '',
+      '' as SubscriptionType,
+      '',
+      []
     );
   }
 }
