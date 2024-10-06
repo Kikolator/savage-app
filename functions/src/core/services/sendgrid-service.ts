@@ -9,13 +9,14 @@ import { HttpResponseError } from '../utils/http-response-error';
 import { ClientRequest } from '@sendgrid/client/src/request';
 import { LeadClientModel } from '../data/models/lead/client/lead-client-model';
 import { CustomField } from '../data/custom-field';
-import { CustomFieldClientModel } from '../data/models/custom-field/client/custom-field-client-model';
+// import { CustomFieldFirestoreModel } from '../data/models/custom-field/firestore/custom-field-firestore-model';
+// import { FieldValue } from 'firebase-admin/firestore';
 
 export class SendgridService {
   private initialized: boolean = false;
 
   // list IDs
-  readonly kLeadsListId = '848b96c6-1d98-45b5-9f82-56f257fe5416';
+  private readonly _kLeadsListId = '848b96c6-1d98-45b5-9f82-56f257fe5416';
   //   private readonly kInactiveLeadsListId =
   //     '1a79b75b-cfb6-48fe-8023-d0ccbbe2e3ca';
   //   private readonly kFormerMembersListId =
@@ -23,6 +24,11 @@ export class SendgridService {
   //   private readonly kGeneralNewsletterListId =
   //     '4d6a76f0-dfb8-4f6d-a9c7-5cf5496a88df';
   //   private readonly kCurrentMembers = 'b24dee5a-7f48-4743-9795-47f3415248ab';
+
+  // Custom Field IDs
+  private readonly _kStartDateCustomFieldId = 'e3_D';
+  private readonly _kSignupReasonCustomFieldId = 'e5_T';
+  private readonly _ksubscriptionTypeCustomFieldId = 'e4_T';
 
   // initialize the Sendgrid API at runtime, only once.
   private initialize(): void {
@@ -40,12 +46,13 @@ export class SendgridService {
   // }
 
   // private customFieldsCollection() {
+  //   //TODO set app name to variable / Firebase has app name var?
   //   return this.collection().doc('savageApp').collection('customFields');
   // }
 
-  // private customFieldsDoc(leadId?: string) {
-  //   if (!leadId) return this.customFieldsCollection().doc();
-  //   return this.customFieldsCollection().doc(leadId);
+  // private customFieldDoc(customFieldId?: string) {
+  //   if (!customFieldId) return this.customFieldsCollection().doc();
+  //   return this.customFieldsCollection().doc(customFieldId);
   // }
 
   async getLists() {
@@ -104,11 +111,58 @@ export class SendgridService {
 
   /** Adds a new contact to Sendgrid
    * #TODO handle if contact already exists.
+   * #TODO create a SendgridContact class with lead to contact method.
    * Returns the status of the request 202 if in cue, or error.
    */
-  async addContact(lead: LeadClientModel): Promise<string> {
-    // Add lead to sendgrid as a contact
-    throw new Error('Function not implemented.');
+  async addContact(lead: LeadClientModel): Promise<void> {
+    this.initialize();
+    const listIds = [] as any;
+    const customFields = {} as any;
+
+    // add Lead list
+    listIds.push(this._kLeadsListId);
+
+    // add contact
+    const contacts: any[] = [
+      {
+        email: lead.email,
+        first_name: lead.firstName,
+        last_name: lead.lastName,
+        custom_fields: customFields,
+      },
+    ];
+    if (lead.phone) {
+      contacts[0].phone_number_id = lead.phone;
+    }
+    if (lead.startDate) {
+      customFields[this._kStartDateCustomFieldId] = lead.startDate;
+    }
+    if (lead.subscriptionType) {
+      customFields[this._ksubscriptionTypeCustomFieldId] =
+        lead.subscriptionType;
+    }
+    if (lead.signupReason) {
+      customFields[this._kSignupReasonCustomFieldId] = lead.signupReason;
+    }
+
+    const data = {
+      list_ids: listIds,
+      contacts: contacts,
+    };
+    const request: ClientRequest = {
+      url: `/v3/marketing/contacts`,
+      method: 'put',
+      body: data,
+    };
+
+    try {
+      // logger.debug(request);
+      await sgClient.request(request);
+      return;
+    } catch (error) {
+      logger.error(error);
+      throw new HttpResponseError(500);
+    }
   }
 
   /** Adds contact to list
@@ -116,6 +170,8 @@ export class SendgridService {
    */
   async addContactToList(contactId: string, listId: string) {
     // Add contact to list
+    logger.error('addContactToList not implemented');
+    throw new HttpResponseError(500);
   }
 
   /** Gets the custom fields and reserved fields from Sendgrid.
@@ -143,12 +199,13 @@ export class SendgridService {
    * for names use lowercase and underscore.
    * returns CustomField with id.
    */
-  async createCustomField(newCustomField: CustomField): Promise<CustomField> {
+  async createCustomField(customField: CustomField): Promise<CustomField> {
     this.initialize();
+    // Set custom field to Sendgrid
 
     const data = {
-      name: newCustomField.name,
-      field_type: newCustomField.fieldType,
+      name: customField.name,
+      field_type: customField.fieldType,
     };
 
     const request: ClientRequest = {
@@ -156,19 +213,32 @@ export class SendgridService {
       method: 'POST',
       body: data,
     };
-    const [response, body]: [sgMail.ClientResponse, any] =
-      await sgClient.request(request);
-    if (response.statusCode != 200) {
+    try {
+      const [response, _]: [sgMail.ClientResponse, any] =
+        await sgClient.request(request);
+      if (response.statusCode != 200) {
+        throw new HttpResponseError(500, 'INTERNAL', 'unknown error');
+      }
+
+      // const newCustomField = customField.copyWith({ id: body.result.id });
+
+      // // Add custom field to Firestore
+      // const docRef = this.customFieldDoc(newCustomField.id);
+      // await docRef.set(
+      //   CustomFieldFirestoreModel.fromEntitiy(newCustomField).toDocumentData(
+      //     undefined,
+      //     FieldValue.serverTimestamp()
+      //   )
+      // );
+
+      return customField;
+    } catch (error: any) {
       logger.error(
         'Error creating custom field',
-        `Sendgrid status code: ${response.statusCode}`,
-        `response body: ${JSON.stringify(response.body)}`
+        `error: ${JSON.stringify(error.message)}`
       );
-      throw new HttpResponseError(500);
+      throw new HttpResponseError(400, 'BAD_REQUEST', error.message);
     }
-    const customField: CustomField = CustomFieldClientModel.validate(body);
-
-    return customField;
   }
 }
 

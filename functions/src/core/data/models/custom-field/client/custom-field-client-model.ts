@@ -32,12 +32,23 @@ export class CustomFieldClientModel extends CustomField {
   static validate(body: any): CustomFieldClientModel {
     this._validate(body);
     return new CustomFieldClientModel(
-      undefined,
+      body[CustomFieldClientModel.kId] ?? null,
       body[CustomFieldClientModel.kName],
       body[CustomFieldClientModel.kFieldType],
-      body[CustomFieldClientModel.kCreatedAtMillisecondsSinceEpoch] ??
-        new Date(),
+      body[CustomFieldClientModel.kCreatedAtMillisecondsSinceEpoch] ?? null,
       body[CustomFieldClientModel.kUpdatedAtMillisecondsSinceEpoch] ?? null
     );
+  }
+
+  toBody() {
+    return {
+      [CustomFieldClientModel.kId]: this.id ?? null,
+      [CustomFieldClientModel.kName]: this.name,
+      [CustomFieldClientModel.kFieldType]: this.fieldType,
+      [CustomFieldClientModel.kCreatedAtMillisecondsSinceEpoch]:
+        this.createdAt?.getTime() ?? null,
+      [CustomFieldClientModel.kUpdatedAtMillisecondsSinceEpoch]:
+        this.updatedAt?.getTime() ?? null,
+    };
   }
 }

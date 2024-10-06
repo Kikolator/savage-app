@@ -10,7 +10,7 @@ export class CustomFieldFirestoreModel extends CustomField {
   static kCreatedAt = 'createdAt';
   static kUpdatedAt = 'updatedAt';
 
-  fromEntitiy(customField: CustomField): CustomFieldFirestoreModel {
+  static fromEntitiy(customField: CustomField): CustomFieldFirestoreModel {
     return Object.assign(CustomFieldFirestoreModel.empty(), customField);
   }
 

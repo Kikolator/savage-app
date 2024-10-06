@@ -5,7 +5,8 @@ import { Controller, HttpServer } from '..';
 import { FirebaseSecrets } from '../../../core/utils/firebase-secrets';
 import { sendgridService } from '../../../core/services/sendgrid-service';
 import { LeadClientModel } from '../../../core/data/models/lead/client/lead-client-model';
-// import { CustomFieldClientModel } from '../../../core/data/models/custom-field/client/custom-field-client-model';
+import { CustomFieldClientModel } from '../../../core/data/models/custom-field/client/custom-field-client-model';
+import { logger } from 'firebase-functions/v2';
 
 export class AdminController implements Controller {
   initialize(httpServer: HttpServer): void {
@@ -48,7 +49,9 @@ export class AdminController implements Controller {
     //TODO
     // Add new lead as a contact to sendgrid and to Leads list
     await sendgridService.addContact(lead);
-    res.status(200).send('all good, check log');
+    res
+      .status(200)
+      .send('Contact added succesfully, check Sendgrid status for updates');
     next();
   };
 
@@ -77,12 +80,10 @@ export class AdminController implements Controller {
     res,
     next
   ) => {
-    // verify request body
-    // const newCustomField = CustomFieldClientModel.validate(req.body);
-    // add new custom field to sendgrid custom fields
-    // const customField = await sendgridService.createCustomField(newCustomField);
-    // add custom field to db
-
+    logger.debug(req.body);
+    const newCustomField = CustomFieldClientModel.validate(req.body);
+    await sendgridService.createCustomField(newCustomField);
+    res.status(200).send('custom field added succesfully');
     next();
   };
 }
