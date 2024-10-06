@@ -9,11 +9,12 @@ import { HttpResponseError } from '../utils/http-response-error';
 import { ClientRequest } from '@sendgrid/client/src/request';
 import { LeadClientModel } from '../data/models/lead/client/lead-client-model';
 import { CustomField } from '../data/custom-field';
-// import { CustomFieldFirestoreModel } from '../data/models/custom-field/firestore/custom-field-firestore-model';
+// import { CustomFieldFirestoreModel } from '../data/models/
+// custom - field / firestore / custom - field - firestore - model';
 // import { FieldValue } from 'firebase-admin/firestore';
 
 export class SendgridService {
-  private initialized: boolean = false;
+  private initialized = false;
 
   // list IDs
   private readonly _kLeadsListId = '848b96c6-1d98-45b5-9f82-56f257fe5416';
@@ -23,7 +24,8 @@ export class SendgridService {
   //     '24644a79-977a-4a84-81b8-fd87114102c8';
   //   private readonly kGeneralNewsletterListId =
   //     '4d6a76f0-dfb8-4f6d-a9c7-5cf5496a88df';
-  //   private readonly kCurrentMembers = 'b24dee5a-7f48-4743-9795-47f3415248ab';
+  //   private readonly kCurrentMembers =
+  // 'b24dee5a-7f48-4743-9795-47f3415248ab';
 
   // Custom Field IDs
   private readonly _kStartDateCustomFieldId = 'e3_D';
@@ -37,7 +39,8 @@ export class SendgridService {
       // set the Sendgrid API key.
       sgMail.setApiKey(sendgridApiKey);
       sgClient.setApiKey(sendgridApiKey);
-      this.initialized = true; // ensure we don't initialize again in future calls.
+      this.initialized = true;
+      // ensure we don't initialize again in future calls.
     }
   }
 
@@ -150,7 +153,7 @@ export class SendgridService {
       contacts: contacts,
     };
     const request: ClientRequest = {
-      url: `/v3/marketing/contacts`,
+      url: '/v3/marketing/contacts',
       method: 'put',
       body: data,
     };
@@ -180,7 +183,7 @@ export class SendgridService {
   async getCustomFields() {
     this.initialize();
     const request: ClientRequest = {
-      url: `/v3/marketing/field_definitions`,
+      url: '/v3/marketing/field_definitions',
       method: 'GET',
     };
     const [response, _] = await sgClient.request(request);
@@ -209,7 +212,7 @@ export class SendgridService {
     };
 
     const request: ClientRequest = {
-      url: `/v3/marketing/field_definitions`,
+      url: '/v3/marketing/field_definitions',
       method: 'POST',
       body: data,
     };

@@ -45,14 +45,14 @@ export const verifyIdToken = (
     if (!finished) {
       finished = true;
       logger.error(
-        `Invalid Firebase ID Token on 'Authorization' header (TIMEOUT)`
+        'Invalid Firebase ID Token on \'Authorization\' header (TIMEOUT)'
       );
       res.status(401).send(
         new ErrorResponseBody({
           status: 401,
           code: 'UNAUTHORIZED',
           description:
-            "Invalid Firebase ID Token on 'Authorization' header (TIMEOUT)",
+            'Invalid Firebase ID Token on \'Authorization\' header (TIMEOUT)',
         })
       );
     }
@@ -69,7 +69,8 @@ export const verifyIdToken = (
           req.authenticated = true;
           req.auth = await admin.auth().getUser(decoded.uid);
           req.token = decoded;
-          req.claims = req.auth!.customClaims ?? ({} as any); // same object reference as Firebase
+          req.claims = req.auth!.customClaims ?? ({} as any);
+          // same object reference as Firebase
           req.claims!['authenticated' as MyClaims] = true;
 
           assert(req.auth!.customClaims!['authenticated'] == true);
@@ -91,7 +92,7 @@ export const verifyIdToken = (
               status: 401,
               code: 'UNAUTHORIZED',
               description:
-                "Invalid Firebase ID Token on 'Authorization' header",
+                'Invalid Firebase ID Token on \'Authorization\' header',
             })
           );
         }

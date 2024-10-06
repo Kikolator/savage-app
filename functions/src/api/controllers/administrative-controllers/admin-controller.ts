@@ -4,8 +4,12 @@ import { RequestHandler } from 'express';
 import { Controller, HttpServer } from '..';
 import { FirebaseSecrets } from '../../../core/utils/firebase-secrets';
 import { sendgridService } from '../../../core/services/sendgrid-service';
+// eslint-disable-next-line max-len
 import { LeadClientModel } from '../../../core/data/models/lead/client/lead-client-model';
-import { CustomFieldClientModel } from '../../../core/data/models/custom-field/client/custom-field-client-model';
+import {
+  CustomFieldClientModel,
+  // eslint-disable-next-line max-len
+} from '../../../core/data/models/custom-field/client/custom-field-client-model';
 import { logger } from 'firebase-functions/v2';
 
 export class AdminController implements Controller {
@@ -46,7 +50,7 @@ export class AdminController implements Controller {
     // validate body
     const lead = LeadClientModel.validateBody(req.body);
     // Add lead to db
-    //TODO
+    // TODO
     // Add new lead as a contact to sendgrid and to Leads list
     await sendgridService.addContact(lead);
     res
