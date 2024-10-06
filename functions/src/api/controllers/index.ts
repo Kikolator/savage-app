@@ -81,7 +81,7 @@ export class HttpServer {
     return async (req: Request, res: Response, next: NextFunction) => {
       const checkClaims = () => {
         if (claims?.length) {
-          for (let claim of claims) {
+          for (const claim of claims) {
             if ((req.auth?.customClaims ?? {})[claim]) {
               return;
             }
@@ -93,10 +93,10 @@ export class HttpServer {
             403,
             'FORBIDDEN',
             !req.auth
-              ? `Requires authentication`
+              ? 'Requires authentication'
               : `Only ${claims
-                  .toString()
-                  .replace(/,/g, ', ')} can perform this operation`
+                .toString()
+                .replace(/,/g, ', ')} can perform this operation`
           );
         }
       };

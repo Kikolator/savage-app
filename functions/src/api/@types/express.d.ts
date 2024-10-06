@@ -10,7 +10,8 @@ export type Claims = {
 declare global {
   namespace Express {
     interface Request {
-      /** Indicates whether the user is authenticated on Firebase Authentication */
+      /** Indicates whether the user is authenticated on Firebase
+       * Authentication */
       authenticated: boolean;
 
       /** If authenticated: Contains user data of Firebase Authentication.  */
@@ -21,7 +22,8 @@ declare global {
 
       /**
        * Refers to the claims from the user that is performing the request,
-       * if the user is authenticated with Firebase, this object also includes the claims from `auth.claims` */
+       * if the user is authenticated with Firebase, this object
+       * also includes the claims from `auth.claims` */
       claims?: Claims;
 
       /** Refers to the Api key present on x-api-header.

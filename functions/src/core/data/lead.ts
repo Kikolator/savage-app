@@ -15,12 +15,14 @@ import { SubscriptionType } from '../..';
  * - phone: The lead's phone number for direct contact.
  * - countryCode: The country code associated with the lead's phone number,
  *   useful for international contact (e.g., 'US' for United States).
- * - startDate: The date when the lead is interested in starting or engaging. When null the lead did not set a starting date.
+ * - startDate: The date when the lead is interested in starting or
+ * engaging. When null the lead did not set a starting date.
  * with the service.
  * - why: A short description explaining the lead's reason for interest,
  * or what they are looking for.
  * - subscriptionType: The id of the subscription they are enquiring for,
- * or where the form was filled in from. When null, the lead did not express interest in a certain subscription.
+ * or where the form was filled in from. When null, the lead did not
+ * express interest in a certain subscription.
  * - origin: where the lead is originated, for example 'web'.
  */
 export class Lead {

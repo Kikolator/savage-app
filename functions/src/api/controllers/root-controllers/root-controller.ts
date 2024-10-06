@@ -5,7 +5,7 @@ import { Controller, HttpServer } from '../index';
 import { FirebaseSecrets } from '../../../core/utils/firebase-secrets';
 import { logger } from 'firebase-functions/v2';
 
-let counter: number = 1;
+let counter = 1;
 
 export class RootController implements Controller {
   initialize(httpServer: HttpServer): void {

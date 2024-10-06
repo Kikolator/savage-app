@@ -1,7 +1,9 @@
 // src/core/services/lead-service.ts
 import * as admin from 'firebase-admin';
 import { Lead } from '../data/lead';
-import { LeadFirestoreModel } from '../data/models/lead/firestore/lead-firestore-model';
+import {
+  LeadFirestoreModel,
+} from '../data/models/lead/firestore/lead-firestore-model';
 
 export class LeadService {
   private collection() {
@@ -23,7 +25,8 @@ export class LeadService {
     phone?: string,
     email?: string
   ): Promise<boolean> {
-    //TODO Write function to check if email and/or phone already exist in other lead.
+    // TODO Write function to check if email
+    // and or phone already exist in other lead.
     throw new Error('Function not implemented.');
   }
 }
