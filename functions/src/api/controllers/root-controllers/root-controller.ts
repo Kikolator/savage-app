@@ -16,12 +16,7 @@ export class RootController implements Controller {
       [],
       FirebaseSecrets.appApiKey
     );
-    httpServer.get(
-      'test-body',
-      this.body.bind(this),
-      [],
-      FirebaseSecrets.appApiKey
-    );
+    httpServer.post('/test-body', this.body.bind(this));
   }
 
   private readonly root: RequestHandler = async (req, res, next) => {
