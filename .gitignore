@@ -73,3 +73,5 @@ node_modules/
 
 # Private key files
 .private
+
+.DS_Store
