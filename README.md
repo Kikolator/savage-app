@@ -60,10 +60,136 @@ Providers to setup:
 
 [Functions Readme](functions/README.functions.md)
 
-## Databases
+## Database
 
-Real-time connections like bookings with Firestore.  
-Relational data like user data PostgreSQL.
+Real-time connections like bookings with Firestore.
+
+<!-- TODO Relational data like user data PostgreSQL. -->
+
+Data structure and models:
+
+- **user** Collection:
+  - uid string
+  - first_name string
+  - last_name string
+  - contact_email string
+  - contact_phone string
+  - signup_email string | null
+  - signup_phone string | null
+  - phone_whatsapp string | null
+  - photo_url string | null
+  - membership_status string
+  - membership_types string[]
+  - available_credits number | null
+  - joined_at timestamp
+  - member_data_id string | null
+  - request_invoice boolean
+  - invoice_data map:
+    - invoice_nif string | null
+    - invoice_name string | null
+    - invoice_address string | null
+    - invoice_address2 string | null
+    - invoice_city string | null
+    - invoice_state string | null
+    - invoice_postalcode string | null
+    - invoice_country string | null
+  - **invoices** SubCollection:
+    - invoice_id string
+    - user_id string
+  - **memberships** SubCollection:
+    - membership_id string
+    - start_date timestamp
+    - end_date timestamp
+    - user_id string
+    - active boolean
+    - renew_membership boolean
+    - type string
+    - price double
+    - discount_number double | null
+    - discount_percent double | null
+    - currency string
+    - payment_method_id string
+    - booking_credits string | null
+    - booking_credits_used string | null
+    - booking_credits_remaining string | null
+    - workspace_id string | null
+  - **bookings** SubCollection:
+    - booking_id string
+    - start_date_time timestamp
+    - end_date_time timestamp
+    - user_id string
+    - workspace_id string
+    - desk_id string
+    - desk_number string
+    - status string
+  - **Payment_methods** SubCollection:
+    - method_id string
+    - type string
+    - user_id string
+    - provider string
+    - last_four_digits string
+    - expiry_date string
+    - is_default boolean
+    - stripe_payment_method_id string
+- **Member_data** Collection:
+  - id string
+  - uid string
+  - member_visible boolean
+  - name string | null
+  - company_name string | null
+  - description string | null
+  - categories string[]
+  - website string | null
+  - linkedin string | null
+  - instagram string | null
+  - facebook string | null
+  - twitter string | null
+  - youtube string | null
+  - photo_url string | null
+- **workspaces** Collection:
+  - workspace_id string
+  - name string
+  - address string
+  - city string
+  - state string
+  - postalcode string
+  - desks_capacity integer
+  - desks_available integer
+  - meeting_rooms_available integer
+  - amenities string[]
+  - **desks** Subcollection:
+    - desk_id string
+    - workspace_id string
+    - desk_number string
+    - desk_type string
+    - available boolean
+    - assigned_to string | null
+    - assigned_until timestamp | null
+    - bookings object<start timestamp, end timestamp>[]
+    - photo_url string | null
+  - **meeting_rooms** SubCollection:
+    - room_id string
+    - workspace_id string
+    - room_number string
+    - available boolean
+    - bookings object<start timestamp, end timestamp>[]
+    - photo_url string | null
+- **feedback** Collection:
+- **payments** Collection:
+- **memberships** Collection:
+  - id string
+  - name string
+  - description string
+  - amenities_included string[]
+  - active boolean
+  - price double
+  - photo_url string | null
+- **check_in_out_sessions** Collection:
+  - id string
+  - uid string
+  - checked_in boolean
+  - date_time timestamp
+  - workspace_id string
 
 ## Firebase Storage
 
