@@ -4,9 +4,32 @@ rules_version = '2';
 // allow write: if firestore.get(
 //    /databases/(default)/documents/users/$(request.auth.uid)).data.isAdmin;
 service firebase.storage {
+  
+  function authenticated() {
+    return request.auth.uid != null
+  }
+
   match /b/{bucket}/o {
-    match /{allPaths=**} {
-      allow read, write: if false;
+    match /users/{userId}/{allPaths=**} {
+      // Users can access their own data
+      allow read, write: if request.auth.uid == userId;
+    }
+
+    match /members/{allPaths=**} {
+      // Users can read if authenticated and membership status is "active"
+      allow read: if request.auth.uid != null && firestore.get(/databases/(default)/documents/users/($request.auth.id)).membership_status == "active"
+    }
+    
+    match /members/{fileId}/{allPaths=**} {
+      // Users can write their own member data.
+      // allow read: if true;
+      allow write: if firestore.get(/databases/(default)/documents/users/($request.auth.id)).membership_data_id == fileId
+    }
+
+    match /public/{allPaths=**} {
+      // Public read-only for everyone
+      allow read: if true;
+      allow write: if authenticated();
     }
   }
 }
