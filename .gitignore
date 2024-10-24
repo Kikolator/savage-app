@@ -75,6 +75,6 @@ node_modules/
 .private
 
 # front end apps
-apps
+apps/
 
 .DS_Store
