@@ -6,9 +6,9 @@ const eventTriggerList: Array<InitializeEventTriggers> = [
   new UsersEventTriggers(),
 ];
 
-export function eventTriggers(): object {
-  const res: object = {};
-  for (let v2 of eventTriggerList) {
+export function eventTriggers(): { [key: string]: any } {
+  const res: { [key: string]: any } = {};
+  for (const v2 of eventTriggerList) {
     v2.initialize((params) => {
       res[params.name] = params.handler;
     });
