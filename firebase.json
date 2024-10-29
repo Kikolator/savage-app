@@ -94,7 +94,7 @@
       "public": "public/api",
       "rewrites": [
         {
-          "source": "/**",
+          "source": "**",
           "function": {
             "functionId": "api",
             "pinTag": true
