@@ -9,7 +9,7 @@ let counter = 1;
 
 export class RootController implements Controller {
   initialize(httpServer: HttpServer): void {
-    httpServer.get('/', this.root.bind(this));
+    httpServer.get('/ping', this.root.bind(this));
     httpServer.get(
       '/test-key',
       this.api.bind(this),

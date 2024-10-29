@@ -14,7 +14,6 @@ import {
 import { UserFirestoreModel } from '../../core/data/models/user/firestore/user-firestore-model';
 import { DbChangedRecord } from '../../core/data/db-changed-record';
 import { dbChangesService } from '../../core/services/db-changes-service';
-import { updateCustomClaim } from '../../core/utils/helpers';
 import { userService } from '../../core/services/user-service';
 
 export class UsersEventTriggers implements InitializeEventTriggers {
@@ -61,6 +60,16 @@ export class UsersEventTriggers implements InitializeEventTriggers {
         ) {
           const status = userAfterUpdate.membershipStatus;
           await userService.updateMembershipStatus(uid, status);
+
+          if (status == 'inactive') {
+            // TODO If membershipStatus is set to inactive:
+            //  - from nukiService, remove access
+            //  - update sendgrid list
+          } else if (status == 'active') {
+            // TODO If membershipStatus is set to active:
+            //  - from nukiService, add access
+            //  - update sendgrid list
+          }
         }
 
         // TODO handle if user membershipType is updated

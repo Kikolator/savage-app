@@ -52,7 +52,7 @@ export class AdminController implements Controller {
     // Add lead to db
     // TODO
     // Add new lead as a contact to sendgrid and to Leads list
-    await sendgridService.addContact(lead);
+    await sendgridService.addLead(lead);
     res
       .status(200)
       .send('Contact added succesfully, check Sendgrid status for updates');
