@@ -10,6 +10,9 @@
         ],
         "my": [
           "savage-coworking"
+        ],
+        "api": [
+          "api-savage-coworking"
         ]
       }
     }
