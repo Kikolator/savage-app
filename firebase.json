@@ -88,6 +88,19 @@
           "type": 301
         }
       ]
+    },
+    {
+      "target": "api",
+      "public": "public/api",
+      "rewrites": [
+        {
+          "source": "/**",
+          "function": {
+            "functionId": "api",
+            "pinTag": true
+          }
+        }
+      ]
     }
   ],
   "storage": {
