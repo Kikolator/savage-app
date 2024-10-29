@@ -9,6 +9,7 @@ import { HttpResponseError } from '../utils/http-response-error';
 import { ClientRequest } from '@sendgrid/client/src/request';
 import { LeadClientModel } from '../data/models/lead/client/lead-client-model';
 import { CustomField } from '../data/custom-field';
+import { User } from '../data/user';
 // import { CustomFieldFirestoreModel } from '../data/models/
 // custom - field / firestore / custom - field - firestore - model';
 // import { FieldValue } from 'firebase-admin/firestore';
@@ -41,6 +42,15 @@ export class SendgridService {
       sgClient.setApiKey(sendgridApiKey);
       this.initialized = true;
       // ensure we don't initialize again in future calls.
+    }
+  }
+
+  async createContactFromUser(user: User): Promise<void> {
+    try {
+      this.initialize();
+      // TODO Create contact and add to leads list.
+    } catch (error) {
+      // TODO log error
     }
   }
 
@@ -112,12 +122,12 @@ export class SendgridService {
     }
   }
 
-  /** Adds a new contact to Sendgrid
+  /** Adds a new contact to Sendgrid from a lead
    * #TODO handle if contact already exists.
    * #TODO create a SendgridContact class with lead to contact method.
    * Returns the status of the request 202 if in cue, or error.
    */
-  async addContact(lead: LeadClientModel): Promise<void> {
+  async addLead(lead: LeadClientModel): Promise<void> {
     this.initialize();
     const listIds = [] as any;
     const customFields = {} as any;
