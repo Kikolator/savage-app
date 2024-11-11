@@ -241,8 +241,7 @@ Dynamic codes:
 
 > **B7aD1c**
 >
-> location: Beermats  
-> Redirect: Instagram
+> location: Beermats & Trial day poster Redirect: trial day landing page
 
 ### My Savage
 
