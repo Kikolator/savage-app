@@ -26,6 +26,20 @@ service firebase.storage {
       allow write: if firestore.get(/databases/(default)/documents/users/($request.auth.id)).membership_data_id == fileId
     }
 
+    match /desks/{deskId}/{allPAths=**} {
+      // Only admin can write
+      allow write: if request.auth.token.admin;
+      // Authenticated users can read
+      allow read: if authenticated();
+    }
+
+    match /meeting_rooms/{meetingRoomId}/{allPAths=**} {
+      // Only admin can write
+      allow write: if request.auth.token.admin;
+      // Authenticated users can read
+      allow read: if authenticated();
+    }
+
     match /public/{allPaths=**} {
       // Public read-only for everyone
       allow read: if true;

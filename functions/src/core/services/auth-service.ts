@@ -1,6 +1,7 @@
 // src/core/services/auth-service.ts
 
 import { getAuth } from 'firebase-admin/auth';
+import { logger } from 'firebase-functions/v2';
 
 class AuthService {
   // A service wrapper for the Firebase Auth package
@@ -16,10 +17,22 @@ class AuthService {
     value: boolean
   ): Promise<void> {
     try {
-      const claims = { [key]: value };
+      logger.debug('updating custom claim');
+      // get current claims
+      let claims = (await getAuth().getUser(uid)).customClaims;
+      logger.debug('current claims: ', claims);
+      // add/update new claim
+      if (claims == undefined) {
+        logger.debug('claims is undefined');
+        claims = { [key]: value };
+      } else {
+        claims[key] = value;
+      }
+      logger.debug('claims to update: ', claims);
       await getAuth().setCustomUserClaims(uid, claims);
     } catch (error) {
       // TODO handle error
+      logger.error(error);
     }
   }
 }
