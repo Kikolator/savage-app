@@ -1,0 +1,19 @@
+{
+  "name": "users/55Hkbs9Gjso9UUsLYaAaRSTQaYZ1/profile_picture",
+  "bucket": "savage-coworking.appspot.com",
+  "metageneration": 1,
+  "generation": 1731426235637,
+  "contentType": "application/octet-stream",
+  "storageClass": "STANDARD",
+  "contentDisposition": "inline",
+  "downloadTokens": [
+    "e6dd0bda-5435-4fdd-b6ac-3ea72a4ef6b4"
+  ],
+  "etag": "dGpIZ5gS2V+OGXhQQNABPlcKhLE",
+  "customMetadata": {},
+  "timeCreated": "2024-11-12T15:43:55.653Z",
+  "updated": "2024-11-12T15:43:55.653Z",
+  "size": 60626,
+  "md5Hash": "YVBXQPqO3veWYQgUBqbSYg==",
+  "crc32c": "3079245186"
+}

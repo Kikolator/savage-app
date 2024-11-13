@@ -9,12 +9,16 @@ import {
   EventTriggerV2Function,
   InitializeEventTriggers,
 } from '../initialize-event-triggers';
+import { logger } from 'firebase-functions/v2';
 
 // eslint-disable-next-line max-len
 import { UserFirestoreModel } from '../../core/data/models/user/firestore/user-firestore-model';
 import { DbChangedRecord } from '../../core/data/db-changed-record';
 import { dbChangesService } from '../../core/services/db-changes-service';
-import { userService } from '../../core/services/user-service';
+import { FirebaseSecrets } from '../../core/utils/firebase-secrets';
+import { authService } from '../../core/services/auth-service';
+import { sendgridService } from '../../core/services/sendgrid-service';
+import { memberDataService } from '../../core/services/member-data-service';
 
 export class UsersEventTriggers implements InitializeEventTriggers {
   initialize(add: AddEventTrigger): void {
@@ -24,68 +28,101 @@ export class UsersEventTriggers implements InitializeEventTriggers {
 
   private readonly onCreated: EventTriggerV2Function = {
     name: 'onUserCreated',
-    handler: onDocumentCreated('users/{uid}', async (document) => {
-      if (document.data === undefined) {
-        return;
+    handler: onDocumentCreated(
+      { document: 'users/{uid}', region: 'europe-west3' },
+      async (document) => {
+        if (document.data === undefined) {
+          return;
+        }
+        const user = UserFirestoreModel.fromDocumentData(document.data?.data());
+        // If email is nic@savage-coworking.com, set user role to admin.
+        if (user.signupEmail == 'nic@savage-coworking.com') {
+          await authService.updateCustomClaim(user.uid, 'admin', true);
+        }
+        const record = new DbChangedRecord(
+          'USER_CREATED',
+          `User ${user.firstName} ${user.lastName} has been created`,
+          user.uid
+        );
+        await dbChangesService.addRecord(record);
       }
-      const user = UserFirestoreModel.fromDocumentData(document.data?.data());
-      const record = new DbChangedRecord(
-        'USER_CREATED',
-        `User ${user.firstName} ${user.lastName} has been created`,
-        user.uid
-      );
-      await dbChangesService.addRecord(record);
-    }),
+    ),
   };
 
   private readonly onChanged: EventTriggerV2Function = {
     name: 'onUserChanged',
-    handler: onDocumentUpdated('users/{uid}', async (document) => {
-      try {
-        if (document.data === undefined) {
-          return;
-        }
-        const userBeforeUpdate = UserFirestoreModel.fromDocumentData(
-          document.data.before.data()
-        );
-        const userAfterUpdate = UserFirestoreModel.fromDocumentData(
-          document.data.after.data()
-        );
-
-        const uid = userAfterUpdate.uid;
-
-        // if user membershipStatus is updated
-        if (
-          userBeforeUpdate.membershipStatus !== userAfterUpdate.membershipStatus
-        ) {
-          const status = userAfterUpdate.membershipStatus;
-          await userService.updateMembershipStatus(uid, status);
-
-          if (status == 'inactive') {
-            // TODO If membershipStatus is set to inactive:
-            //  - from nukiService, remove access
-            //  - update sendgrid list
-          } else if (status == 'active') {
-            // TODO If membershipStatus is set to active:
-            //  - from nukiService, add access
-            //  - update sendgrid list
+    handler: onDocumentUpdated(
+      {
+        document: 'users/{uid}',
+        region: 'europe-west3',
+        secrets: [FirebaseSecrets.sendgridApiKey],
+      },
+      async (document) => {
+        try {
+          if (document.data === undefined) {
+            return;
           }
-        }
+          const userBeforeUpdate = UserFirestoreModel.fromDocumentData(
+            document.data.before.data()
+          );
+          const user = UserFirestoreModel.fromDocumentData(
+            document.data.after.data()
+          );
 
-        // TODO handle if user membershipType is updated
-        // TODO (if email updates is enabled)
-        //    - send one - off email to notify subscription update
+          // if user membershipStatus is updated
+          const status = user.membershipStatus;
+          if (userBeforeUpdate.membershipStatus !== status && status != null) {
+            logger.debug('user status has changed');
+            // Update Custom Claim
+            await authService.updateCustomClaim(
+              user.uid,
+              'client',
+              status === 'active'
+            );
+            // Update Sendgrid Contact
+            await sendgridService.updateContact(user);
+            // TODO Update Nuki service
 
-        const record = new DbChangedRecord(
-          'USER_UPDATED',
-          `User ${userAfterUpdate.firstName} ${userAfterUpdate.lastName} 
+            // TODO Update member object
+            const memberDataId = user.memberDataId;
+            if (memberDataId != null) {
+              memberDataService.updateStatus(memberDataId, status);
+            }
+          }
+
+          // // if user membership types are updated
+          // const membershipTypes = user.membershipTypes;
+          // if (userBeforeUpdate.membershipTypes !== membershipTypes) {
+          //   // get the new membership types
+          //   const newSubscriptions: string[] = membershipTypes.filter(
+          //     (item) => !userBeforeUpdate.membershipTypes.includes(item)
+          //   );
+          //   const cancelledSubscriptions: string[] =
+          //     userBeforeUpdate.membershipTypes.filter(
+          //       (item) => !membershipTypes.includes(item)
+          //     );
+          //   await userService.updateMembershipTypes(
+          //     user,
+          //     newSubscriptions,
+          //     cancelledSubscriptions
+          //   );
+          // }
+
+          const record = new DbChangedRecord(
+            'USER_UPDATED',
+            `User ${user.firstName} ${user.lastName} 
           has been updated`,
-          userAfterUpdate.uid
-        );
-        await dbChangesService.addRecord(record);
-      } catch (error) {
-        // TODO handle error
+            user.uid
+          );
+          await dbChangesService.addRecord(record);
+        } catch (error: unknown) {
+          // TODO handle error
+          logger.error(
+            `error on document update user: ${document.params.uid}`,
+            error
+          );
+        }
       }
-    }),
+    ),
   };
 }

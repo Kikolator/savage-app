@@ -2,7 +2,7 @@
 
 import * as sgMail from '@sendgrid/mail';
 import * as sgClient from '@sendgrid/client';
-// import * as admin from 'firebase-admin';
+import * as admin from 'firebase-admin';
 import { FirebaseSecrets } from '../utils/firebase-secrets';
 import { logger } from 'firebase-functions/v2';
 import { HttpResponseError } from '../utils/http-response-error';
@@ -10,28 +10,73 @@ import { ClientRequest } from '@sendgrid/client/src/request';
 import { LeadClientModel } from '../data/models/lead/client/lead-client-model';
 import { CustomField } from '../data/custom-field';
 import { User } from '../data/user';
+import { Subscription } from '../data/subscription';
+
 // import { CustomFieldFirestoreModel } from '../data/models/
 // custom - field / firestore / custom - field - firestore - model';
-// import { FieldValue } from 'firebase-admin/firestore';
+import { FieldValue } from 'firebase-admin/firestore';
+
+interface ListObject {
+  name: string;
+  id: string;
+}
+
+interface ContactCustomFields {
+  [key: string]: string | Date | number;
+}
+
+interface Contact {
+  email: string;
+  phone_number_id: string;
+  external_id: string;
+  first_name: string;
+  last_name: string;
+  custom_fields: ContactCustomFields;
+}
+
+interface RequestData {
+  list_ids: string[];
+  contact: Contact[];
+}
 
 export class SendgridService {
   private initialized = false;
 
+  private collection() {
+    return admin.firestore().collection('sendgrid');
+  }
+
   // list IDs
-  private readonly _kLeadsListId = '848b96c6-1d98-45b5-9f82-56f257fe5416';
+  // private readonly _kLeadsListId = '848b96c6-1d98-45b5-9f82-56f257fe5416';
   //   private readonly kInactiveLeadsListId =
   //     '1a79b75b-cfb6-48fe-8023-d0ccbbe2e3ca';
-  //   private readonly kFormerMembersListId =
-  //     '24644a79-977a-4a84-81b8-fd87114102c8';
-  //   private readonly kGeneralNewsletterListId =
-  //     '4d6a76f0-dfb8-4f6d-a9c7-5cf5496a88df';
-  //   private readonly kCurrentMembers =
-  // 'b24dee5a-7f48-4743-9795-47f3415248ab';
+  // private readonly kFormerMembersListId =
+  //   '24644a79-977a-4a84-81b8-fd87114102c8';
+  // private readonly _kGeneralNewsletterListId =
+  //   '4d6a76f0-dfb8-4f6d-a9c7-5cf5496a88df';
+  // private readonly kCurrentMembersListId =
+  //   'b24dee5a-7f48-4743-9795-47f3415248ab';
+  private readonly kLeadsList: ListObject = {
+    name: 'leads',
+    id: '2c37cc7e-ea48-4573-9c82-da7d9d62ab41',
+  };
+  private readonly kMembersList: ListObject = {
+    name: 'members',
+    id: 'ace131a3-a469-446d-9569-6027191902d0',
+  };
+  private readonly kNewsList: ListObject = {
+    name: 'news',
+    id: 'ef435fed-a6e9-453e-99bf-bf90c7cf97ff',
+  };
 
   // Custom Field IDs
   private readonly _kStartDateCustomFieldId = 'e3_D';
   private readonly _kSignupReasonCustomFieldId = 'e5_T';
-  private readonly _ksubscriptionTypeCustomFieldId = 'e4_T';
+  private readonly kSubscriptionTypeFieldId = 'e4_T';
+  private readonly kSubscriptionStatusFieldId = 'e6_T';
+
+  private readonly kNewSubscriptionTemplateId =
+    'd-012dbbb122d24494915ab59fcd214306';
 
   // initialize the Sendgrid API at runtime, only once.
   private initialize(): void {
@@ -40,22 +85,117 @@ export class SendgridService {
       // set the Sendgrid API key.
       sgMail.setApiKey(sendgridApiKey);
       sgClient.setApiKey(sendgridApiKey);
-      this.initialized = true;
       // ensure we don't initialize again in future calls.
+      this.initialized = true;
+      logger.debug('SendgridService initialised');
     }
   }
 
-  async createContactFromUser(user: User): Promise<void> {
+  async updateContact(user: User): Promise<void> {
     try {
       this.initialize();
-      // TODO Create contact and add to leads list.
-    } catch (error) {
-      // TODO log error
+      logger.debug('updating sendgrid contact');
+      const contacts: Contact[] = [];
+      const listIds: string[] = [];
+      const customFields: ContactCustomFields = {};
+
+      if (user.membershipStatus != null) {
+        customFields[this.kSubscriptionStatusFieldId] = user.membershipStatus;
+        listIds.push(this.kMembersList.id);
+      }
+
+      if (user.newsletterSubscription) {
+        listIds.push(this.kNewsList.id);
+      }
+
+      const contact: Contact = {
+        email: user.signupEmail ?? '',
+        phone_number_id: user.signupPhone ?? '',
+        external_id: user.uid,
+        first_name: user.firstName,
+        last_name: user.lastName,
+        custom_fields: customFields,
+      };
+
+      contacts.push(contact);
+
+      const data: RequestData = {
+        list_ids: listIds,
+        contact: contacts,
+      };
+      const request: ClientRequest = {
+        url: '/v3/marketing/contacts',
+        method: 'PUT',
+        body: data,
+      };
+      logger.debug(request);
+      await sgClient.request(request);
+
+      await this.collection().doc(user.uid).set({
+        uid: user.uid,
+        contact: contact,
+        list_ids: listIds,
+        date_time: FieldValue.serverTimestamp(),
+      });
+      return;
+    } catch (error: unknown) {
+      logger.error(
+        `error on creating/updating sendgrid contact for User: ${user.uid}`,
+        JSON.stringify(error)
+      );
+      throw new HttpResponseError(500, 'INTERNAL', 'unknown');
     }
   }
 
-  // private collection() {
-  //   return admin.firestore().collection('sendgrid');
+  async sendNewSubscriptionEmail(
+    user: User,
+    newSubscriptions: Subscription[]
+  ): Promise<void> {
+    // TODO write a function that sends a one-off email template when
+    // subscription type is updated.
+    for (const subscription of newSubscriptions) {
+      const message: sgMail.MailDataRequired = {
+        personalizations: [
+          {
+            to: [
+              {
+                email: user.signupEmail,
+                name: `${user.firstName} ${user.lastName}`,
+              },
+            ],
+            dynamicTemplateData: {
+              user: {
+                first_name: user.firstName,
+              },
+              subscription: {
+                subscription_type: subscription.plan,
+                start_date: subscription.startDate,
+                auto_renew: subscription.autoRenew,
+                billing_cycle: subscription.billingCycle,
+              },
+              date_format: 'dddd, D MMMM YYYY',
+            },
+          },
+        ],
+        from: {
+          email: 'hub@savage-coworking.com',
+          name: 'Savage Coworking',
+        },
+        templateId: this.kNewSubscriptionTemplateId,
+      };
+      logger.debug(message);
+      logger.warn('Uncomment line for production');
+      await sgMail.send(message);
+    }
+  }
+
+  // TODO
+  // async sendCancelledSubscriptionEmail(
+  //   user: User,
+  //   cancelledSubscriptions: string[]
+  // ): Promise<void> {
+  //   // TODO write a function that sends a one-off email template when
+  //   // subscription type is updated.
   // }
 
   // private customFieldsCollection() {
@@ -69,19 +209,18 @@ export class SendgridService {
   // }
 
   async getLists() {
-    this.initialize();
-
-    const queryParams = {
-      page_size: 50,
-    };
-
-    const data: ClientRequest = {
-      url: 'v3/marketing/lists',
-      method: 'GET',
-      qs: queryParams,
-    };
-
     try {
+      this.initialize();
+      logger.debug('Getting Sendgrid lists');
+      const queryParams = {
+        page_size: 50,
+      };
+
+      const data: ClientRequest = {
+        url: 'v3/marketing/lists',
+        method: 'GET',
+        qs: queryParams,
+      };
       const [response, body]: [sgMail.ClientResponse, any] =
         await sgClient.request(data);
       if (response.statusCode == 200) {
@@ -89,7 +228,7 @@ export class SendgridService {
           name: string,
           id: string,
           contactCount: number,
-          meta: any
+          meta: object
         ];
       } else {
         throw new HttpResponseError(response.statusCode);
@@ -105,6 +244,7 @@ export class SendgridService {
 
   async sendTestEmail() {
     this.initialize();
+    logger.debug('Sending test email');
     const msg = {
       to: 'nicholaspijpers@icloud.com',
       from: 'hub@savage-coworking.com',
@@ -129,14 +269,15 @@ export class SendgridService {
    */
   async addLead(lead: LeadClientModel): Promise<void> {
     this.initialize();
-    const listIds = [] as any;
-    const customFields = {} as any;
+    logger.debug('Adding lead');
+    const listIds = [] as string[];
+    const customFields = {} as { [key: string]: string | Date | number };
 
     // add Lead list
-    listIds.push(this._kLeadsListId);
+    listIds.push(this.kLeadsList.id);
 
     // add contact
-    const contacts: any[] = [
+    const contacts: { [key: string]: string | object }[] = [
       {
         email: lead.email,
         first_name: lead.firstName,
@@ -151,8 +292,7 @@ export class SendgridService {
       customFields[this._kStartDateCustomFieldId] = lead.startDate;
     }
     if (lead.subscriptionType) {
-      customFields[this._ksubscriptionTypeCustomFieldId] =
-        lead.subscriptionType;
+      customFields[this.kSubscriptionTypeFieldId] = lead.subscriptionType;
     }
     if (lead.signupReason) {
       customFields[this._kSignupReasonCustomFieldId] = lead.signupReason;
@@ -182,6 +322,9 @@ export class SendgridService {
    * Takes two args, contact id and list id
    */
   async addContactToList(contactId: string, listId: string) {
+    this.initialize();
+    logger.debug('Adding contact to list');
+    logger.debug(contactId, listId);
     // Add contact to list
     logger.error('addContactToList not implemented');
     throw new HttpResponseError(500);
@@ -196,7 +339,7 @@ export class SendgridService {
       url: '/v3/marketing/field_definitions',
       method: 'GET',
     };
-    const [response, _] = await sgClient.request(request);
+    const [response] = await sgClient.request(request);
     if (response.statusCode != 200) {
       logger.error(
         'Error getting custom fields',
@@ -227,7 +370,7 @@ export class SendgridService {
       body: data,
     };
     try {
-      const [response, _]: [sgMail.ClientResponse, any] =
+      const [response]: [sgMail.ClientResponse, unknown] =
         await sgClient.request(request);
       if (response.statusCode != 200) {
         throw new HttpResponseError(500, 'INTERNAL', 'unknown error');

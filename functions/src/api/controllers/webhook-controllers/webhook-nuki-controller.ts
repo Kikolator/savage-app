@@ -7,7 +7,7 @@ export class NukiWebhookController implements Controller {
     httpServer.get(
       '/webhook/nuki',
       this.pingNuki.bind(this),
-      ['client'],
+      ['client', 'admin'],
       FirebaseSecrets.appApiKey
     );
   }
