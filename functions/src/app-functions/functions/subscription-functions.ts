@@ -13,9 +13,12 @@ export class SubscriptionFunctions implements InitializeCallableFunctions {
 
   private readonly createSubscription: CallableV2Function = {
     name: 'createSubscription',
-    handler: onCall((request) => {
+    handler: onCall({ region: 'europe-west3' }, (request) => {
       logger.debug('creating subscription');
       // Check caller is admin
+      const isAdmin: boolean | undefined = request.auth?.token.admin;
+      logger.debug(`caller is admin: ${isAdmin}`);
+      return;
     }),
   };
 }
