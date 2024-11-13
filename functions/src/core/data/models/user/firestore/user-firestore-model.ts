@@ -62,7 +62,7 @@ export class UserFirestoreModel extends User {
       '',
       '',
       '',
-      null,
+      '',
       null,
       null,
       new Date(),
