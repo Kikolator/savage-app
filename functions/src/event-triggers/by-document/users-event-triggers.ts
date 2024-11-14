@@ -79,15 +79,15 @@ export class UsersEventTriggers implements InitializeEventTriggers {
               'client',
               status === 'active'
             );
-            // Update Sendgrid Contact
-            await sendgridService.updateContact(user);
-            // TODO Update Nuki service
-
-            // TODO Update member object
+            // Update member object
             const memberDataId = user.memberDataId;
             if (memberDataId != null) {
               memberDataService.updateStatus(memberDataId, status);
             }
+
+            // Update Sendgrid Contact
+            await sendgridService.updateContact(user);
+            // TODO Update Nuki service
           }
 
           // // if user membership types are updated

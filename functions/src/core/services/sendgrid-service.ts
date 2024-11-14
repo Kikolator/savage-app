@@ -36,7 +36,7 @@ interface Contact {
 
 interface RequestData {
   list_ids: string[];
-  contact: Contact[];
+  contacts: Contact[];
 }
 
 export class SendgridService {
@@ -121,7 +121,7 @@ export class SendgridService {
 
       const data: RequestData = {
         list_ids: listIds,
-        contact: contacts,
+        contacts: contacts,
       };
       const request: ClientRequest = {
         url: '/v3/marketing/contacts',
